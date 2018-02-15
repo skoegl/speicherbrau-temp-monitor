@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import logging
-import os.path
 from datetime import datetime, timedelta
 from random import uniform
 from time import time, mktime
@@ -11,9 +10,9 @@ import pyqtgraph as pg
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtWidgets import QMainWindow
 from pyqtgraph.graphicsItems.PlotCurveItem import PlotCurveItem
+
 sensors = list()
 sensor2Name = None
-
 
 level = logging.INFO
 logger = logging.getLogger()
@@ -46,17 +45,17 @@ def mockSensors():
 		logger.debug("used class as sensor: %r", W1ThermSensor)
 		sensors.append(W1ThermSensor(sensor2Name[i], i * 20 + 20, i * 20 + 20 + 20))
 
+
 try:
 	from w1thermsensor import W1ThermSensor
+
 	sensors = W1ThermSensor.get_available_sensors()
 except Exception as err:
 	logger.exception(err)
 	logger.info("Now mocking our sensors. Perhaps you should check if modules are loaded or sensors are plugged in")
 
-
 if not sensors:
 	mockSensors()
-
 
 qtapp = QtGui.QApplication([])
 
@@ -100,7 +99,7 @@ class Sensor(object):
 		initialTime = datetime.now()
 		for i in range(num_data):
 			self.timestamps[-i] = mktime((initialTime - timedelta(seconds=i * parent.ticking)).timetuple())
-			# logger.info("temp index: %r, %r", -i, datetime.fromtimestamp(self.timestamps[-i]))
+		# logger.info("temp index: %r, %r", -i, datetime.fromtimestamp(self.timestamps[-i]))
 
 		graphPen = pg.mkPen(color="r", width=2)
 		axisPen = pg.mkPen(color="w", width=2)
@@ -144,10 +143,10 @@ class Sensor(object):
 		leftClamp = datetime.fromtimestamp(data[0])
 		rightClamp = datetime.fromtimestamp(data[1])
 		initialTime = datetime.now()
-		diff = initialTime-rightClamp
+		diff = initialTime - rightClamp
 		result = diff < timedelta(seconds=5)
 		self.parentWidget.scrolling = result
-		logger.info("calc should scrolling: %r, %r, %r, %r",  rightClamp, initialTime, diff, result)
+		logger.info("calc should scrolling: %r, %r, %r, %r", rightClamp, initialTime, diff, result)
 
 
 class SpeicherbrauPlotterWidget(QMainWindow):
@@ -173,12 +172,6 @@ class SpeicherbrauPlotterWidget(QMainWindow):
 		self.thread = SensorsThread(self.ticking)
 		self.thread.newSensorData.connect(self.updateData)
 		self.thread.start(QtCore.QThread.IdlePriority)
-
-	def pubdir(self):
-		return os.path.dirname(os.path.abspath(__file__))
-
-	def active_actor_count(self):
-		return self.max_actors
 
 	@QtCore.pyqtSlot(dict)
 	def updateData(self, sensorData):
